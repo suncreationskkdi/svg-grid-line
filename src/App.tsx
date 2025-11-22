@@ -5,11 +5,16 @@ interface GridSettings {
   pageWidth: number;
   pageHeight: number;
   pageUnit: 'mm' | 'cm' | 'in';
-  gridType: 'lines' | 'dots';
+  gridType: 'lines' | 'dots' | 'squares' | 'circles';
   gridSpacingX: number;
   gridSpacingY: number;
   lineWidth: number;
   dotSize: number;
+  squareWidth: number;
+  squareHeight: number;
+  squareBorderWidth: number;
+  circleDiameter: number;
+  circleBorderWidth: number;
   rectangleWidth: number;
   rectangleHeight: number;
   rectangleBorderWidth: number;
@@ -25,6 +30,11 @@ function App() {
     gridSpacingY: 10,
     lineWidth: 0.2,
     dotSize: 0.5,
+    squareWidth: 5,
+    squareHeight: 5,
+    squareBorderWidth: 0.2,
+    circleDiameter: 5,
+    circleBorderWidth: 0.2,
     rectangleWidth: 100,
     rectangleHeight: 80,
     rectangleBorderWidth: 0.4,
@@ -37,6 +47,7 @@ function App() {
   const generateSVG = useCallback(() => {
     const {
       pageWidth, pageHeight, pageUnit, gridSpacingX, gridSpacingY, lineWidth, gridType, dotSize,
+      squareWidth, squareHeight, squareBorderWidth, circleDiameter, circleBorderWidth,
       rectangleWidth, rectangleHeight, rectangleBorderWidth
     } = settings;
 
@@ -97,12 +108,35 @@ function App() {
           gridLines += `<line x1="${gridStartX}" y1="${y}" x2="${gridEndX}" y2="${y}" stroke="#666" stroke-width="${lineWidth * mmToPixel}" />\n`;
         }
       }
-    } else {
+    } else if (gridType === 'dots') {
       // Generate dots
       for (let x = alignedStartX; x <= gridEndX; x += spacingX) {
         for (let y = alignedStartY; y <= gridEndY; y += spacingY) {
           if (x >= rectX && x <= rectX + rectW && y >= rectY && y <= rectY + rectH) {
             gridLines += `<circle cx="${x}" cy="${y}" r="${dotSize * mmToPixel / 2}" fill="#666" />\n`;
+          }
+        }
+      }
+    } else if (gridType === 'squares') {
+      // Generate squares
+      const sqW = squareWidth * mmToPixel;
+      const sqH = squareHeight * mmToPixel;
+      for (let x = alignedStartX; x <= gridEndX; x += spacingX) {
+        for (let y = alignedStartY; y <= gridEndY; y += spacingY) {
+          const sqX = x - sqW / 2;
+          const sqY = y - sqH / 2;
+          if (sqX >= rectX && sqX + sqW <= rectX + rectW && sqY >= rectY && sqY + sqH <= rectY + rectH) {
+            gridLines += `<rect x="${sqX}" y="${sqY}" width="${sqW}" height="${sqH}" fill="none" stroke="#666" stroke-width="${squareBorderWidth * mmToPixel}" />\n`;
+          }
+        }
+      }
+    } else if (gridType === 'circles') {
+      // Generate circles
+      const circleRadius = (circleDiameter * mmToPixel) / 2;
+      for (let x = alignedStartX; x <= gridEndX; x += spacingX) {
+        for (let y = alignedStartY; y <= gridEndY; y += spacingY) {
+          if (x - circleRadius >= rectX && x + circleRadius <= rectX + rectW && y - circleRadius >= rectY && y + circleRadius <= rectY + rectH) {
+            gridLines += `<circle cx="${x}" cy="${y}" r="${circleRadius}" fill="none" stroke="#666" stroke-width="${circleBorderWidth * mmToPixel}" />\n`;
           }
         }
       }
@@ -215,11 +249,13 @@ function App() {
                     <label className="block text-sm font-medium text-gray-600 mb-1">Grid Type</label>
                     <select
                       value={settings.gridType}
-                      onChange={(e) => setSettings(prev => ({ ...prev, gridType: e.target.value as 'lines' | 'dots' }))}
+                      onChange={(e) => setSettings(prev => ({ ...prev, gridType: e.target.value as 'lines' | 'dots' | 'squares' | 'circles' }))}
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     >
                       <option value="lines">Grid Lines</option>
                       <option value="dots">Dots</option>
+                      <option value="squares">Squares</option>
+                      <option value="circles">Circles</option>
                     </select>
                   </div>
                   <div className="grid grid-cols-2 gap-3">
@@ -267,6 +303,66 @@ function App() {
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       />
                     </div>
+                  )}
+                  {settings.gridType === 'squares' && (
+                    <>
+                      <div className="grid grid-cols-2 gap-3">
+                        <div>
+                          <label className="block text-sm font-medium text-gray-600 mb-1">Square Width (mm)</label>
+                          <input
+                            type="number"
+                            step="0.1"
+                            value={settings.squareWidth}
+                            onChange={(e) => updateSetting('squareWidth', parseFloat(e.target.value) || 0)}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-600 mb-1">Square Height (mm)</label>
+                          <input
+                            type="number"
+                            step="0.1"
+                            value={settings.squareHeight}
+                            onChange={(e) => updateSetting('squareHeight', parseFloat(e.target.value) || 0)}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                          />
+                        </div>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-600 mb-1">Border Width (mm)</label>
+                        <input
+                          type="number"
+                          step="0.1"
+                          value={settings.squareBorderWidth}
+                          onChange={(e) => updateSetting('squareBorderWidth', parseFloat(e.target.value) || 0)}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        />
+                      </div>
+                    </>
+                  )}
+                  {settings.gridType === 'circles' && (
+                    <>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-600 mb-1">Circle Diameter (mm)</label>
+                        <input
+                          type="number"
+                          step="0.1"
+                          value={settings.circleDiameter}
+                          onChange={(e) => updateSetting('circleDiameter', parseFloat(e.target.value) || 0)}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-600 mb-1">Border Width (mm)</label>
+                        <input
+                          type="number"
+                          step="0.1"
+                          value={settings.circleBorderWidth}
+                          onChange={(e) => updateSetting('circleBorderWidth', parseFloat(e.target.value) || 0)}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        />
+                      </div>
+                    </>
                   )}
                 </div>
 
@@ -343,9 +439,11 @@ function App() {
               </div>
               
               <div className="mt-4 text-center text-sm text-gray-500">
-                {settings.gridType === 'lines' ? 'Grid Lines' : 'Dots'}: {settings.gridSpacingX}mm × {settings.gridSpacingY}mm spacing •
-                {settings.gridType === 'lines' ? `Line width: ${settings.lineWidth}mm` : `Dot size: ${settings.dotSize}mm`} •
-                Rectangle: {settings.rectangleWidth}mm × {settings.rectangleHeight}mm
+                {settings.gridType === 'lines' && `Grid Lines: ${settings.gridSpacingX}mm × ${settings.gridSpacingY}mm spacing • Line width: ${settings.lineWidth}mm`}
+                {settings.gridType === 'dots' && `Dots: ${settings.gridSpacingX}mm × ${settings.gridSpacingY}mm spacing • Dot size: ${settings.dotSize}mm`}
+                {settings.gridType === 'squares' && `Squares: ${settings.gridSpacingX}mm × ${settings.gridSpacingY}mm spacing • Size: ${settings.squareWidth}mm × ${settings.squareHeight}mm • Border: ${settings.squareBorderWidth}mm`}
+                {settings.gridType === 'circles' && `Circles: ${settings.gridSpacingX}mm × ${settings.gridSpacingY}mm spacing • Diameter: ${settings.circleDiameter}mm • Border: ${settings.circleBorderWidth}mm`}
+                {' • '}Rectangle: {settings.rectangleWidth}mm × {settings.rectangleHeight}mm
               </div>
             </div>
           </div>
