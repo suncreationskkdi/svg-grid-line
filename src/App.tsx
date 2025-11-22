@@ -256,16 +256,6 @@ function App() {
                     </div>
                   )}
                 </div>
-                    <label className="block text-sm font-medium text-gray-600 mb-1">Line Width (mm)</label>
-                    <input
-                      type="number"
-                      step="0.1"
-                      value={settings.lineWidth}
-                      onChange={(e) => updateSetting('lineWidth', parseFloat(e.target.value) || 0)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    />
-                  </div>
-                </div>
 
                 {/* Rectangle Settings */}
                 <div className="space-y-4">
@@ -340,11 +330,8 @@ function App() {
               </div>
               
               <div className="mt-4 text-center text-sm text-gray-500">
-                {settings.gridType === 'lines' ? 'Grid Lines' : 'Dots'}: {settings.gridSpacingX}mm × {settings.gridSpacingY}mm spacing • 
-                {settings.gridType === 'lines' ? `Line width: ${settings.lineWidth}mm` : `Dot size: ${settings.dotSize}mm`} • 
-                ) : (
-                  <>Dots: {settings.gridSpacingX}mm × {settings.gridSpacingY}mm spacing • Dot size: {settings.dotSize}mm</>
-                )} • 
+                {settings.gridType === 'lines' ? 'Grid Lines' : 'Dots'}: {settings.gridSpacingX}mm × {settings.gridSpacingY}mm spacing •
+                {settings.gridType === 'lines' ? `Line width: ${settings.lineWidth}mm` : `Dot size: ${settings.dotSize}mm`} •
                 Rectangle: {settings.rectangleWidth}mm × {settings.rectangleHeight}mm
               </div>
             </div>
