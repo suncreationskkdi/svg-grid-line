@@ -20,9 +20,11 @@ function App() {
     pageWidth: 210, // A4 width
     pageHeight: 297, // A4 height
     pageUnit: 'mm',
+    gridType: 'lines',
     gridSpacingX: 10,
     gridSpacingY: 10,
     lineWidth: 0.2,
+    dotSize: 0.5,
     rectangleWidth: 100,
     rectangleHeight: 80,
     rectangleBorderWidth: 0.4,
@@ -33,8 +35,8 @@ function App() {
   }, []);
 
   const generateSVG = useCallback(() => {
-    const { 
-      pageWidth, pageHeight, pageUnit, gridSpacingX, gridSpacingY, lineWidth,
+    const {
+      pageWidth, pageHeight, pageUnit, gridSpacingX, gridSpacingY, lineWidth, gridType, dotSize,
       rectangleWidth, rectangleHeight, rectangleBorderWidth
     } = settings;
 
@@ -80,18 +82,29 @@ function App() {
     // Align grid to start from rectangle edges
     const alignedStartX = rectX;
     const alignedStartY = rectY;
-    
-    // Generate vertical lines
-    for (let x = alignedStartX; x <= gridEndX; x += spacingX) {
-      if (x >= rectX && x <= rectX + rectW) {
-        gridLines += `<line x1="${x}" y1="${gridStartY}" x2="${x}" y2="${gridEndY}" stroke="#666" stroke-width="${lineWidth * mmToPixel}" />\n`;
+
+    if (gridType === 'lines') {
+      // Generate vertical lines
+      for (let x = alignedStartX; x <= gridEndX; x += spacingX) {
+        if (x >= rectX && x <= rectX + rectW) {
+          gridLines += `<line x1="${x}" y1="${gridStartY}" x2="${x}" y2="${gridEndY}" stroke="#666" stroke-width="${lineWidth * mmToPixel}" />\n`;
+        }
       }
-    }
-    
-    // Generate horizontal lines
-    for (let y = alignedStartY; y <= gridEndY; y += spacingY) {
-      if (y >= rectY && y <= rectY + rectH) {
-        gridLines += `<line x1="${gridStartX}" y1="${y}" x2="${gridEndX}" y2="${y}" stroke="#666" stroke-width="${lineWidth * mmToPixel}" />\n`;
+
+      // Generate horizontal lines
+      for (let y = alignedStartY; y <= gridEndY; y += spacingY) {
+        if (y >= rectY && y <= rectY + rectH) {
+          gridLines += `<line x1="${gridStartX}" y1="${y}" x2="${gridEndX}" y2="${y}" stroke="#666" stroke-width="${lineWidth * mmToPixel}" />\n`;
+        }
+      }
+    } else {
+      // Generate dots
+      for (let x = alignedStartX; x <= gridEndX; x += spacingX) {
+        for (let y = alignedStartY; y <= gridEndY; y += spacingY) {
+          if (x >= rectX && x <= rectX + rectW && y >= rectY && y <= rectY + rectH) {
+            gridLines += `<circle cx="${x}" cy="${y}" r="${dotSize * mmToPixel / 2}" fill="#666" />\n`;
+          }
+        }
       }
     }
 
